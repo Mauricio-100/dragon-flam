@@ -4,304 +4,372 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dragon Platform</title>
+
+    <!-- Intégration de React et ReactDOM via CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- Intégration de Babel pour transpiler le JSX directement dans le navigateur -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     
-    <!-- DÉBUT DU CSS -->
+    <!-- DÉBUT DU CSS - Nouveau Design "Cyber Dragon" -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-        :root { --primary-color: #FF4500; --background-color: #121212; --surface-color: #1e1e1e; --text-color: #e0e0e0; --text-secondary: #a0a0a0; --border-color: #333; }
-        body { font-family: 'Roboto', sans-serif; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 800px;}
-        header h1 { color: var(--primary-color); font-size: 2.5rem; }
-        main { width: 100%; max-width: 800px; }
-        nav { display: flex; gap: 20px; justify-content: center; margin-top: 10px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
-        nav a, nav button { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; font-family: inherit; padding: 5px 10px; border-radius: 4px; }
-        nav a.active, nav button.active { color: var(--primary-color); font-weight: bold; }
-        nav a:hover, nav button:hover { color: #fff; background-color: rgba(255, 255, 255, 0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap');
+        :root {
+            --primary-color: #00ff9d;
+            --secondary-color: #9c27b0;
+            --background-color: #0d1117;
+            --surface-color: #161b22;
+            --text-color: #c9d1d9;
+            --text-secondary: #8b949e;
+            --border-color: #30363d;
+            --error-color: #f85149;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Roboto Mono', monospace; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        #root { width: 100%; max-width: 900px; }
+        header { text-align: center; margin-bottom: 20px; }
+        header h1 { color: var(--primary-color); font-size: 2.8rem; text-shadow: 0 0 15px rgba(0, 255, 157, 0.5); }
+        nav { display: flex; gap: 15px; justify-content: center; margin-top: 10px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        nav a, nav button { background: none; border: 1px solid transparent; color: var(--text-secondary); cursor: pointer; font-size: 1rem; font-family: inherit; padding: 8px 15px; border-radius: 6px; transition: all 0.2s ease-in-out; }
+        nav a.active, nav button.active { color: var(--primary-color); border-color: var(--primary-color); }
+        nav a:hover, nav button:hover { color: #fff; background-color: rgba(0, 255, 157, 0.1); }
         .page { display: none; }
-        .page.active { display: block; }
-        .form-container, .card { background-color: var(--surface-color); padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); margin-bottom: 20px; }
-        h2 { text-align: center; margin-top: 0; margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin-bottom: 15px; background-color: #333; border: 1px solid #555; border-radius: 4px; color: var(--text-color); box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: var(--primary-color); border: none; border-radius: 4px; color: white; font-weight: 700; cursor: pointer; transition: background-color 0.3s; }
-        button:hover { background-color: #e03e00; }
+        .page.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background-color: var(--surface-color); padding: 30px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 20px; }
+        h2, h3 { text-align: center; margin-top: 0; margin-bottom: 25px; color: var(--primary-color); }
+        label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background-color: var(--background-color); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); font-family: inherit; }
+        textarea { resize: vertical; min-height: 140px; }
+        button { width: 100%; padding: 12px; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); border: none; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0, 255, 157, 0.2); }
+        button:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
         a { color: var(--primary-color); text-decoration: none; }
-        .form-container p { text-align: center; font-size: 0.9rem; color: var(--text-secondary); }
         .key-display-container { display: flex; gap: 10px; margin: 10px 0; }
         .key-display-container input { flex-grow: 1; margin-bottom: 0; }
         .key-display-container button { width: auto; padding: 0 15px; }
-        .error { background-color: #d32f2f; color: white; padding: 15px; border-radius: 4px; text-align: center; margin-top: 20px; display: none; }
-        .package { border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; margin-bottom: 15px; transition: background-color 0.2s; }
-        .package:hover { background-color: rgba(255, 255, 255, 0.05); }
-        .package h3 { margin: 0 0 5px 0; color: var(--primary-color); }
-        .package small { color: var(--text-secondary); }
+        .error { background-color: var(--error-color); color: white; padding: 15px; border-radius: 6px; text-align: center; margin-top: 20px; display: none; }
+        .package { border-left: 3px solid var(--secondary-color); padding: 15px; margin-bottom: 15px; background-color: rgba(156, 39, 176, 0.05); }
+        #ai-response { background-color: #010409; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; min-height: 100px; white-space: pre-wrap; word-wrap: break-word; }
     </style>
     <!-- FIN DU CSS -->
 </head>
 <body>
 
-    <header>
-        <h1>🐉 Dragon Platform</h1>
-        <!-- La barre de navigation est cachée si non connecté -->
-        <nav id="main-nav" style="display: none;">
-            <a href="#" data-page="dashboard-page" class="nav-link">Mon Tableau de Bord</a>
-            <a href="#" data-page="explore-page" class="nav-link">Explorer les Paquets</a>
-            <button id="logout-btn">Déconnexion</button>
-        </nav>
-    </header>
+    <div id="root"></div>
 
-    <main>
-        <!-- PAGE D'AUTHENTIFICATION -->
-        <section id="auth-page" class="page">
-            <div id="login-container">
-                <div class="form-container">
-                    <h2>Connexion</h2>
-                    <form id="login-form">
-                        <label for="login-email">Email</label>
-                        <input type="email" id="login-email" required>
-                        <label for="login-password">Mot de passe</label>
-                        <input type="password" id="login-password" required>
-                        <button type="submit">Se connecter</button>
-                    </form>
-                    <p>Pas de compte ? <a href="#" id="show-register">Inscrivez-vous</a></p>
-                </div>
-            </div>
-            <div id="register-container" style="display: none;">
-                <div class="form-container">
-                    <h2>Inscription</h2>
-                    <form id="register-form">
-                        <label for="register-username">Nom d'utilisateur</label>
-                        <input type="text" id="register-username" required>
-                        <label for="register-email">Email</label>
-                        <input type="email" id="register-email" required>
-                        <label for="register-password">Mot de passe</label>
-                        <input type="password" id="register-password" required>
-                        <button type="submit">Créer mon compte</button>
-                    </form>
-                    <p>Déjà un compte ? <a href="#" id="show-login">Connectez-vous</a></p>
-                </div>
-            </div>
-        </section>
+    <!-- DÉBUT DU JAVASCRIPT AVEC REACT (JSX) -->
+    <!-- Le 'type="text/babel"' est crucial pour que Babel puisse transpiler le code -->
+    <script type="text/babel">
 
-        <!-- PAGE DU TABLEAU DE BORD (cachée par défaut) -->
-        <section id="dashboard-page" class="page">
-            <div class="card api-key-box">
-                <h3>Vos Informations de Connexion CLI</h3>
-                <p>Copiez ces informations dans votre fichier <code>~/.env</code> pour configurer Dragon CLI.</p>
-                <label>URL du Serveur</label>
-                <div class="key-display-container">
-                    <input type="text" id="server-url-display" readonly>
-                    <button id="copy-url-btn">Copier</button>
-                </div>
-                <label>Clé API (Bearer Token)</label>
-                <div class="key-display-container">
-                    <input type="text" id="api-key-display" readonly value="Générez une clé pour commencer...">
-                    <button id="copy-key-btn">Copier</button>
-                </div>
-                <button id="generate-key-btn">Générer / Régénérer ma clé</button>
-            </div>
-            <div class="card my-packages-box">
-                <h3>Mes Dracopacks Publiés</h3>
-                <div id="my-packages-list"></div>
-            </div>
-        </section>
+        const { useState, useEffect } = React;
 
-        <!-- PAGE D'EXPLORATION (cachée par défaut) -->
-        <section id="explore-page" class="page">
-            <div class="card">
-                <input type="text" id="search-bar" placeholder="Rechercher un paquet par nom, auteur ou description...">
-                <div id="explore-packages-list" style="margin-top: 20px;"></div>
-            </div>
-        </section>
-
-        <div id="error-message" class="error"></div>
-    </main>
-    
-    <!-- DÉBUT DU JAVASCRIPT -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        function App() {
+            // ================== ÉTAT DE L'APPLICATION ==================
+            const [page, setPage] = useState('auth'); // auth, dashboard, explore, chat
+            const [token, setToken] = useState(localStorage.getItem('jwtToken'));
+            const [error, setError] = useState('');
+            const [apiKey, setApiKey] = useState('Générez une clé pour commencer...');
+            const [myPackages, setMyPackages] = useState([]);
+            const [explorePackages, setExplorePackages] = useState([]);
+            const [filteredPackages, setFilteredPackages] = useState([]);
+            const [aiResponse, setAiResponse] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            
             const API_BASE_URL = "https://sarver-fullstack-4.onrender.com";
 
-            const pages = {
-                auth: document.getElementById('auth-page'),
-                dashboard: document.getElementById('dashboard-page'),
-                explore: document.getElementById('explore-page'),
-            };
-            const mainNav = document.getElementById('main-nav');
-            const errorMessageDiv = document.getElementById('error-message');
-            const showRegisterLink = document.getElementById('show-register');
-            const showLoginLink = document.getElementById('show-login');
-            const loginContainer = document.getElementById('login-container');
-            const registerContainer = document.getElementById('register-container');
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const apiKeyDisplay = document.getElementById('api-key-display');
-            const serverUrlDisplay = document.getElementById('server-url-display');
-            const generateKeyBtn = document.getElementById('generate-key-btn');
-            const copyKeyBtn = document.getElementById('copy-key-btn');
-            const copyUrlBtn = document.getElementById('copy-url-btn');
-            const myPackagesList = document.getElementById('my-packages-list');
-            const explorePackagesList = document.getElementById('explore-packages-list');
-            const searchBar = document.getElementById('search-bar');
-            const logoutBtn = document.getElementById('logout-btn');
-            const navLinks = document.querySelectorAll('.nav-link');
-
-            let allPackages = [];
-
-            // =======================================================
-            // FONCTIONS UTILITAIRES
-            // =======================================================
-            function navigateTo(pageId) {
-                Object.values(pages).forEach(page => page.classList.remove('active'));
-                pages[pageId].classList.add('active');
-                navLinks.forEach(link => link.classList.remove('active'));
-                document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
-            }
-
-            function showError(message) { errorMessageDiv.textContent = message; errorMessageDiv.style.display = 'block'; }
-            function hideError() { errorMessageDiv.style.display = 'none'; }
-
-            async function apiCall(endpoint, method = 'GET', body = null) {
-                const token = localStorage.getItem('jwtToken');
-                const headers = { 'Content-Type': 'application/json' };
+            // Effet pour vérifier si l'utilisateur est connecté au chargement
+            useEffect(() => {
                 if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-
-                const options = { method, headers };
-                if (body) {
-                    options.body = JSON.stringify(body);
-                }
-
-                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Une erreur est survenue');
-                return data;
-            }
-
-            // =======================================================
-            // GESTION DE L'ÉTAT DE L'APPLICATION
-            // =======================================================
-            function updateUI() {
-                const token = localStorage.getItem('jwtToken');
-                if (token) {
-                    mainNav.style.display = 'flex';
-                    navigateTo('dashboard');
-                    loadDashboardData();
+                    setPage('dashboard');
                 } else {
-                    mainNav.style.display = 'none';
-                    navigateTo('auth');
+                    setPage('auth');
+                }
+            }, [token]);
+            
+            // Effet pour charger les données des pages quand on y navigue
+            useEffect(() => {
+                if (page === 'dashboard') {
+                    loadDashboardData();
+                } else if (page === 'explore') {
+                    loadExploreData();
+                }
+            }, [page]);
+
+            // ================== FONCTIONS API ==================
+            async function apiCall(endpoint, method = 'GET', body = null) {
+                const sessionToken = localStorage.getItem('jwtToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (sessionToken) {
+                    headers['Authorization'] = `Bearer ${sessionToken}`;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, { method, headers, body: body ? JSON.stringify(body) : null });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Une erreur est survenue');
+                    return data;
+                } catch (err) {
+                    setError(err.message);
+                    throw err; // Propage l'erreur pour la gérer localement
                 }
             }
 
-            // =======================================================
-            // GESTION DES ÉVÉNEMENTS
-            // =======================================================
-            showRegisterLink.addEventListener('click', e => { e.preventDefault(); loginContainer.style.display = 'none'; registerContainer.style.display = 'block'; });
-            showLoginLink.addEventListener('click', e => { e.preventDefault(); registerContainer.style.display = 'none'; loginContainer.style.display = 'block'; });
-            
-            navLinks.forEach(link => {
-                link.addEventListener('click', e => {
-                    e.preventDefault();
-                    const pageId = e.target.getAttribute('data-page').split('-')[0];
-                    navigateTo(pageId);
-                    if (pageId === 'explore') loadExploreData();
-                    if (pageId === 'dashboard') loadDashboardData();
-                });
-            });
-
-            logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('jwtToken');
-                updateUI();
-            });
-            
-            registerForm.addEventListener('submit', async e => {
-                e.preventDefault(); hideError();
+            // ================== GESTIONNAIRES D'ÉVÉNEMENTS ==================
+            const handleRegister = async (username, email, password) => {
                 try {
-                    await apiCall('/auth/register', 'POST', { username: e.target.elements[0].value, email: e.target.elements[1].value, password: e.target.elements[2].value });
-                    alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-                    showLoginLink.click();
-                    registerForm.reset();
-                } catch (err) { showError(err.message); }
-            });
+                    await apiCall('/auth/register', 'POST', { username, email, password });
+                    alert('Inscription réussie ! Veuillez vous connecter.');
+                    return true;
+                } catch (err) { return false; }
+            };
 
-            loginForm.addEventListener('submit', async e => {
-                e.preventDefault(); hideError();
+            const handleLogin = async (email, password) => {
                 try {
-                    const data = await apiCall('/auth/login', 'POST', { email: e.target.elements[0].value, password: e.target.elements[1].value });
+                    const data = await apiCall('/auth/login', 'POST', { email, password });
                     localStorage.setItem('jwtToken', data.token);
-                    updateUI();
-                } catch (err) { showError(err.message); }
-            });
+                    setToken(data.token);
+                    setError('');
+                } catch (err) { /* L'erreur est déjà gérée par apiCall */ }
+            };
             
-            generateKeyBtn.addEventListener('click', async () => {
-                hideError();
+            const handleLogout = () => {
+                localStorage.removeItem('jwtToken');
+                setToken(null);
+            };
+
+            const handleGenerateKey = async () => {
                 try {
                     const data = await apiCall('/user/api-token', 'POST');
-                    apiKeyDisplay.value = data.api_token;
-                } catch (err) { showError(err.message); }
-            });
+                    setApiKey(data.api_token);
+                } catch (err) { /* géré */ }
+            };
             
-            function copyToClipboard(element, type) {
-                if (element.value && element.value !== "Générez une clé pour commencer...") {
-                    navigator.clipboard.writeText(element.value).then(() => alert(`${type} copié !`));
-                }
-            }
-            copyKeyBtn.addEventListener('click', () => copyToClipboard(apiKeyDisplay, 'Clé API'));
-            copyUrlBtn.addEventListener('click', () => copyToClipboard(serverUrlDisplay, 'URL du Serveur'));
-
-            searchBar.addEventListener('input', e => {
-                const query = e.target.value.toLowerCase();
-                const filtered = allPackages.filter(p => p.package_name.toLowerCase().includes(query) || p.author.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
-                renderPackages(filtered);
-            });
-            
-            // =======================================================
-            // CHARGEMENT DES DONNÉES
-            // =======================================================
-            async function loadDashboardData() {
-                serverUrlDisplay.value = `${API_BASE_URL}/chat-direct`;
-                try {
-                    const packages = await apiCall('/user/packages');
-                    if (packages.length === 0) {
-                        myPackagesList.innerHTML = `<p style="color: var(--text-secondary);">Vous n'avez encore publié aucun paquet.</p>`;
-                        return;
-                    }
-                    myPackagesList.innerHTML = packages.map(p => `
-                        <div class="package">
-                            <h3>${p.package_name} <small>v${p.version}</small></h3>
-                            <p>${p.description}</p>
-                        </div>
-                    `).join('');
-                } catch (err) { myPackagesList.innerHTML = `<p class="error">Impossible de charger vos paquets.</p>`; }
-            }
-
-            async function loadExploreData() {
-                try {
-                    allPackages = await apiCall('/packages/explore');
-                    renderPackages(allPackages);
-                } catch (err) {
-                    explorePackagesList.innerHTML = `<p class="error">Impossible de charger les paquets de la communauté.</p>`;
-                }
-            }
-            
-            function renderPackages(packages) {
-                if (packages.length === 0) {
-                    explorePackagesList.innerHTML = `<p style="color: var(--text-secondary);">Aucun paquet correspondant à votre recherche.</p>`;
+            const handleChatSubmit = async (prompt) => {
+                if (!apiKey || apiKey === 'Générez une clé pour commencer...') {
+                    setError("Veuillez d'abord générer une clé API dans votre tableau de bord.");
                     return;
                 }
-                explorePackagesList.innerHTML = packages.map(p => `
-                    <div class="package">
-                        <h3>${p.package_name} <small>v${p.version}</small></h3>
-                        <p>${p.description}</p>
-                        <small>par ${p.author}</small>
-                    </div>
-                `).join('');
-            }
+                setIsLoading(true);
+                setAiResponse("Le dragon réfléchit...");
+                
+                // On utilise la clé API (sk-...) pour cette route, pas le token de session
+                try {
+                    const response = await fetch(`${API_BASE_URL}/chat-direct`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({ message: prompt })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error);
+                    setAiResponse(data.reply);
+                } catch (err) {
+                    setError(err.message);
+                    setAiResponse('');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            
+            const loadDashboardData = async () => {
+                try {
+                    const packages = await apiCall('/user/packages');
+                    setMyPackages(packages);
+                } catch(err) { /* géré */ }
+            };
+            
+            const loadExploreData = async () => {
+                try {
+                    const packages = await apiCall('/packages/explore');
+                    setExplorePackages(packages);
+                    setFilteredPackages(packages);
+                } catch(err) { /* géré */ }
+            };
+            
+            const handleSearch = (query) => {
+                const q = query.toLowerCase();
+                const filtered = explorePackages.filter(p => 
+                    p.package_name.toLowerCase().includes(q) ||
+                    p.author.toLowerCase().includes(q) ||
+                    p.description.toLowerCase().includes(q)
+                );
+                setFilteredPackages(filtered);
+            };
 
-            // Démarrage de l'application
-            updateUI();
-        });
+            // ================== RENDU DES COMPOSANTS ==================
+            return (
+                <div>
+                    <Header />
+                    {token && <Nav currentPage={page} setPage={setPage} onLogout={handleLogout} />}
+                    <main>
+                        {error && <div className="error">{error}</div>}
+                        {page === 'auth' && <AuthPage onLogin={handleLogin} onRegister={handleRegister} />}
+                        {page === 'dashboard' && <DashboardPage apiKey={apiKey} onGenerateKey={handleGenerateKey} myPackages={myPackages} />}
+                        {page === 'explore' && <ExplorePage packages={filteredPackages} onSearch={handleSearch} />}
+                        {page === 'chat' && <ChatPage onSubmit={handleChatSubmit} response={aiResponse} isLoading={isLoading} />}
+                    </main>
+                </div>
+            );
+        }
+
+        // --- COMPOSANTS DE L'INTERFACE ---
+
+        function Header() {
+            return <header><h1>🐉 Dragon Platform</h1></header>;
+        }
+        
+        function Nav({ currentPage, setPage, onLogout }) {
+            return (
+                <nav>
+                    <a href="#" className={currentPage === 'dashboard' ? 'active' : ''} onClick={() => setPage('dashboard')}>Tableau de Bord</a>
+                    <a href="#" className={currentPage === 'explore' ? 'active' : ''} onClick={() => setPage('explore')}>Explorer</a>
+                    <a href="#" className={currentPage === 'chat' ? 'active' : ''} onClick={() => setPage('chat')}>Playground IA</a>
+                    <button onClick={onLogout}>Déconnexion</button>
+                </nav>
+            );
+        }
+
+        function AuthPage({ onLogin, onRegister }) {
+            const [isLogin, setIsLogin] = useState(true);
+            
+            const handleLoginSubmit = (e) => {
+                e.preventDefault();
+                onLogin(e.target.email.value, e.target.password.value);
+            };
+            
+            const handleRegisterSubmit = async (e) => {
+                e.preventDefault();
+                const success = await onRegister(e.target.username.value, e.target.email.value, e.target.password.value);
+                if (success) {
+                    setIsLogin(true); // Redirige vers le login après une inscription réussie
+                }
+            };
+            
+            return (
+                <div className="page active">
+                    {isLogin ? (
+                        <div className="form-container">
+                            <h2>Connexion</h2>
+                            <form onSubmit={handleLoginSubmit}>
+                                <label htmlFor="login-email">Email</label>
+                                <input id="login-email" type="email" name="email" required />
+                                <label htmlFor="login-password">Mot de passe</label>
+                                <input id="login-password" type="password" name="password" required />
+                                <button type="submit">Se connecter</button>
+                            </form>
+                            <p>Pas de compte ? <a href="#" onClick={() => setIsLogin(false)}>Inscrivez-vous</a></p>
+                        </div>
+                    ) : (
+                        <div className="form-container">
+                            <h2>Inscription</h2>
+                            <form onSubmit={handleRegisterSubmit}>
+                                <label htmlFor="reg-username">Nom d'utilisateur</label>
+                                <input id="reg-username" type="text" name="username" required />
+                                <label htmlFor="reg-email">Email</label>
+                                <input id="reg-email" type="email" name="email" required />
+                                <label htmlFor="reg-password">Mot de passe</label>
+                                <input id="reg-password" type="password" name="password" required />
+                                <button type="submit">Créer mon compte</button>
+                            </form>
+                            <p>Déjà un compte ? <a href="#" onClick={() => setIsLogin(true)}>Connectez-vous</a></p>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function DashboardPage({ apiKey, onGenerateKey, myPackages }) {
+            const API_BASE_URL = "https://sarver-fullstack-4.onrender.com";
+            
+            const copyToClipboard = (text, type) => {
+                if (text && text !== 'Générez une clé pour commencer...') {
+                    navigator.clipboard.writeText(text).then(() => alert(`${type} copié !`));
+                }
+            };
+
+            return (
+                <div className="page active">
+                    <div className="card">
+                        <h3>Vos Informations de Connexion CLI</h3>
+                        <p>Copiez ces informations dans votre fichier <code>~/.env</code> pour configurer Dragon CLI.</p>
+                        <label>URL du Serveur</label>
+                        <div className="key-display-container">
+                            <input type="text" readOnly value={`${API_BASE_URL}/chat-direct`} />
+                            <button onClick={() => copyToClipboard(`${API_BASE_URL}/chat-direct`, 'URL')}>Copier</button>
+                        </div>
+                        <label>Clé API (Bearer Token)</label>
+                        <div className="key-display-container">
+                            <input type="text" readOnly value={apiKey} />
+                            <button onClick={() => copyToClipboard(apiKey, 'Clé API')}>Copier</button>
+                        </div>
+                        <button onClick={onGenerateKey}>Générer / Régénérer ma clé</button>
+                    </div>
+                    <div className="card">
+                        <h3>Mes Dracopacks Publiés</h3>
+                        <div>
+                            {myPackages.length > 0 ? myPackages.map(p => 
+                                <div className="package" key={p.package_name}>
+                                    <h3>{p.package_name} <small>v{p.version}</small></h3>
+                                    <p>{p.description}</p>
+                                </div>
+                            ) : <p>Vous n'avez encore publié aucun paquet.</p>}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        function ExplorePage({ packages, onSearch }) {
+            return (
+                <div className="page active">
+                    <div className="card">
+                        <input type="text" onChange={(e) => onSearch(e.target.value)} placeholder="Rechercher un paquet par nom, auteur ou description..." />
+                        <div style={{marginTop: '20px'}}>
+                            {packages.map(p => 
+                                <div className="package" key={`${p.author}-${p.package_name}`}>
+                                    <h3>{p.package_name} <small>v{p.version}</small></h3>
+                                    <p>{p.description}</p>
+                                    <small>par {p.author}</small>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        function ChatPage({ onSubmit, response, isLoading }) {
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSubmit(e.target.prompt.value);
+            };
+
+            return (
+                <div className="page active">
+                    <div className="card">
+                        <h2>Playground IA</h2>
+                        <p>Discutez directement avec le cerveau du Dragon. Assurez-vous d'avoir généré une clé API dans votre tableau de bord.</p>
+                        <form onSubmit={handleSubmit}>
+                            <label htmlFor="chat-prompt">Votre instruction</label>
+                            <textarea id="chat-prompt" name="prompt" required></textarea>
+                            <button type="submit" disabled={isLoading}>{isLoading ? 'Réflexion en cours...' : 'Envoyer au Dragon'}</button>
+                        </form>
+                        <div style={{marginTop: '20px'}}>
+                            <label>Réponse de l'IA</label>
+                            <pre id="ai-response">{response}</pre>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- POINT D'ENTRÉE DE L'APPLICATION REACT ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
     </script>
     <!-- FIN DU JAVASCRIPT -->
 </body>
