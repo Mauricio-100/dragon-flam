@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Platform</title>
+    
+    <!-- DÉBUT DU CSS -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+        :root { --primary-color: #FF4500; --background-color: #121212; --surface-color: #1e1e1e; --text-color: #e0e0e0; --text-secondary: #a0a0a0; --border-color: #333; }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 800px;}
+        header h1 { color: var(--primary-color); font-size: 2.5rem; }
+        main { width: 100%; max-width: 800px; }
+        nav { display: flex; gap: 20px; justify-content: center; margin-top: 10px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        nav a, nav button { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; font-family: inherit; padding: 5px 10px; border-radius: 4px; }
+        nav a.active, nav button.active { color: var(--primary-color); font-weight: bold; }
+        nav a:hover, nav button:hover { color: #fff; background-color: rgba(255, 255, 255, 0.1); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .form-container, .card { background-color: var(--surface-color); padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); margin-bottom: 20px; }
+        h2 { text-align: center; margin-top: 0; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin-bottom: 15px; background-color: #333; border: 1px solid #555; border-radius: 4px; color: var(--text-color); box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: var(--primary-color); border: none; border-radius: 4px; color: white; font-weight: 700; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #e03e00; }
+        a { color: var(--primary-color); text-decoration: none; }
+        .form-container p { text-align: center; font-size: 0.9rem; color: var(--text-secondary); }
+        .key-display-container { display: flex; gap: 10px; margin: 10px 0; }
+        .key-display-container input { flex-grow: 1; margin-bottom: 0; }
+        .key-display-container button { width: auto; padding: 0 15px; }
+        .error { background-color: #d32f2f; color: white; padding: 15px; border-radius: 4px; text-align: center; margin-top: 20px; display: none; }
+        .package { border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; margin-bottom: 15px; transition: background-color 0.2s; }
+        .package:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .package h3 { margin: 0 0 5px 0; color: var(--primary-color); }
+        .package small { color: var(--text-secondary); }
+    </style>
+    <!-- FIN DU CSS -->
+</head>
+<body>
+
+    <header>
+        <h1>🐉 Dragon Platform</h1>
+        <!-- La barre de navigation est cachée si non connecté -->
+        <nav id="main-nav" style="display: none;">
+            <a href="#" data-page="dashboard-page" class="nav-link">Mon Tableau de Bord</a>
+            <a href="#" data-page="explore-page" class="nav-link">Explorer les Paquets</a>
+            <button id="logout-btn">Déconnexion</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- PAGE D'AUTHENTIFICATION -->
+        <section id="auth-page" class="page">
+            <div id="login-container">
+                <div class="form-container">
+                    <h2>Connexion</h2>
+                    <form id="login-form">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                        <label for="login-password">Mot de passe</label>
+                        <input type="password" id="login-password" required>
+                        <button type="submit">Se connecter</button>
+                    </form>
+                    <p>Pas de compte ? <a href="#" id="show-register">Inscrivez-vous</a></p>
+                </div>
+            </div>
+            <div id="register-container" style="display: none;">
+                <div class="form-container">
+                    <h2>Inscription</h2>
+                    <form id="register-form">
+                        <label for="register-username">Nom d'utilisateur</label>
+                        <input type="text" id="register-username" required>
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required>
+                        <label for="register-password">Mot de passe</label>
+                        <input type="password" id="register-password" required>
+                        <button type="submit">Créer mon compte</button>
+                    </form>
+                    <p>Déjà un compte ? <a href="#" id="show-login">Connectez-vous</a></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE DU TABLEAU DE BORD (cachée par défaut) -->
+        <section id="dashboard-page" class="page">
+            <div class="card api-key-box">
+                <h3>Vos Informations de Connexion CLI</h3>
+                <p>Copiez ces informations dans votre fichier <code>~/.env</code> pour configurer Dragon CLI.</p>
+                <label>URL du Serveur</label>
+                <div class="key-display-container">
+                    <input type="text" id="server-url-display" readonly>
+                    <button id="copy-url-btn">Copier</button>
+                </div>
+                <label>Clé API (Bearer Token)</label>
+                <div class="key-display-container">
+                    <input type="text" id="api-key-display" readonly value="Générez une clé pour commencer...">
+                    <button id="copy-key-btn">Copier</button>
+                </div>
+                <button id="generate-key-btn">Générer / Régénérer ma clé</button>
+            </div>
+            <div class="card my-packages-box">
+                <h3>Mes Dracopacks Publiés</h3>
+                <div id="my-packages-list"></div>
+            </div>
+        </section>
+
+        <!-- PAGE D'EXPLORATION (cachée par défaut) -->
+        <section id="explore-page" class="page">
+            <div class="card">
+                <input type="text" id="search-bar" placeholder="Rechercher un paquet par nom, auteur ou description...">
+                <div id="explore-packages-list" style="margin-top: 20px;"></div>
+            </div>
+        </section>
+
+        <div id="error-message" class="error"></div>
+    </main>
+    
+    <!-- DÉBUT DU JAVASCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_BASE_URL = "https://sarver-fullstack-4.onrender.com";
+
+            const pages = {
+                auth: document.getElementById('auth-page'),
+                dashboard: document.getElementById('dashboard-page'),
+                explore: document.getElementById('explore-page'),
+            };
+            const mainNav = document.getElementById('main-nav');
+            const errorMessageDiv = document.getElementById('error-message');
+            const showRegisterLink = document.getElementById('show-register');
+            const showLoginLink = document.getElementById('show-login');
+            const loginContainer = document.getElementById('login-container');
+            const registerContainer = document.getElementById('register-container');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const apiKeyDisplay = document.getElementById('api-key-display');
+            const serverUrlDisplay = document.getElementById('server-url-display');
+            const generateKeyBtn = document.getElementById('generate-key-btn');
+            const copyKeyBtn = document.getElementById('copy-key-btn');
+            const copyUrlBtn = document.getElementById('copy-url-btn');
+            const myPackagesList = document.getElementById('my-packages-list');
+            const explorePackagesList = document.getElementById('explore-packages-list');
+            const searchBar = document.getElementById('search-bar');
+            const logoutBtn = document.getElementById('logout-btn');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            let allPackages = [];
+
+            // =======================================================
+            // FONCTIONS UTILITAIRES
+            // =======================================================
+            function navigateTo(pageId) {
+                Object.values(pages).forEach(page => page.classList.remove('active'));
+                pages[pageId].classList.add('active');
+                navLinks.forEach(link => link.classList.remove('active'));
+                document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
+            }
+
+            function showError(message) { errorMessageDiv.textContent = message; errorMessageDiv.style.display = 'block'; }
+            function hideError() { errorMessageDiv.style.display = 'none'; }
+
+            async function apiCall(endpoint, method = 'GET', body = null) {
+                const token = localStorage.getItem('jwtToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const options = { method, headers };
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Une erreur est survenue');
+                return data;
+            }
+
+            // =======================================================
+            // GESTION DE L'ÉTAT DE L'APPLICATION
+            // =======================================================
+            function updateUI() {
+                const token = localStorage.getItem('jwtToken');
+                if (token) {
+                    mainNav.style.display = 'flex';
+                    navigateTo('dashboard');
+                    loadDashboardData();
+                } else {
+                    mainNav.style.display = 'none';
+                    navigateTo('auth');
+                }
+            }
+
+            // =======================================================
+            // GESTION DES ÉVÉNEMENTS
+            // =======================================================
+            showRegisterLink.addEventListener('click', e => { e.preventDefault(); loginContainer.style.display = 'none'; registerContainer.style.display = 'block'; });
+            showLoginLink.addEventListener('click', e => { e.preventDefault(); registerContainer.style.display = 'none'; loginContainer.style.display = 'block'; });
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const pageId = e.target.getAttribute('data-page').split('-')[0];
+                    navigateTo(pageId);
+                    if (pageId === 'explore') loadExploreData();
+                    if (pageId === 'dashboard') loadDashboardData();
+                });
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('jwtToken');
+                updateUI();
+            });
+            
+            registerForm.addEventListener('submit', async e => {
+                e.preventDefault(); hideError();
+                try {
+                    await apiCall('/auth/register', 'POST', { username: e.target.elements[0].value, email: e.target.elements[1].value, password: e.target.elements[2].value });
+                    alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+                    showLoginLink.click();
+                    registerForm.reset();
+                } catch (err) { showError(err.message); }
+            });
+
+            loginForm.addEventListener('submit', async e => {
+                e.preventDefault(); hideError();
+                try {
+                    const data = await apiCall('/auth/login', 'POST', { email: e.target.elements[0].value, password: e.target.elements[1].value });
+                    localStorage.setItem('jwtToken', data.token);
+                    updateUI();
+                } catch (err) { showError(err.message); }
+            });
+            
+            generateKeyBtn.addEventListener('click', async () => {
+                hideError();
+                try {
+                    const data = await apiCall('/user/api-token', 'POST');
+                    apiKeyDisplay.value = data.api_token;
+                } catch (err) { showError(err.message); }
+            });
+            
+            function copyToClipboard(element, type) {
+                if (element.value && element.value !== "Générez une clé pour commencer...") {
+                    navigator.clipboard.writeText(element.value).then(() => alert(`${type} copié !`));
+                }
+            }
+            copyKeyBtn.addEventListener('click', () => copyToClipboard(apiKeyDisplay, 'Clé API'));
+            copyUrlBtn.addEventListener('click', () => copyToClipboard(serverUrlDisplay, 'URL du Serveur'));
+
+            searchBar.addEventListener('input', e => {
+                const query = e.target.value.toLowerCase();
+                const filtered = allPackages.filter(p => p.package_name.toLowerCase().includes(query) || p.author.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
+                renderPackages(filtered);
+            });
+            
+            // =======================================================
+            // CHARGEMENT DES DONNÉES
+            // =======================================================
+            async function loadDashboardData() {
+                serverUrlDisplay.value = `${API_BASE_URL}/chat-direct`;
+                try {
+                    const packages = await apiCall('/user/packages');
+                    if (packages.length === 0) {
+                        myPackagesList.innerHTML = `<p style="color: var(--text-secondary);">Vous n'avez encore publié aucun paquet.</p>`;
+                        return;
+                    }
+                    myPackagesList.innerHTML = packages.map(p => `
+                        <div class="package">
+                            <h3>${p.package_name} <small>v${p.version}</small></h3>
+                            <p>${p.description}</p>
+                        </div>
+                    `).join('');
+                } catch (err) { myPackagesList.innerHTML = `<p class="error">Impossible de charger vos paquets.</p>`; }
+            }
+
+            async function loadExploreData() {
+                try {
+                    allPackages = await apiCall('/packages/explore');
+                    renderPackages(allPackages);
+                } catch (err) {
+                    explorePackagesList.innerHTML = `<p class="error">Impossible de charger les paquets de la communauté.</p>`;
+                }
+            }
+            
+            function renderPackages(packages) {
+                if (packages.length === 0) {
+                    explorePackagesList.innerHTML = `<p style="color: var(--text-secondary);">Aucun paquet correspondant à votre recherche.</p>`;
+                    return;
+                }
+                explorePackagesList.innerHTML = packages.map(p => `
+                    <div class="package">
+                        <h3>${p.package_name} <small>v${p.version}</small></h3>
+                        <p>${p.description}</p>
+                        <small>par ${p.author}</small>
+                    </div>
+                `).join('');
+            }
+
+            // Démarrage de l'application
+            updateUI();
+        });
+    </script>
+    <!-- FIN DU JAVASCRIPT -->
+</body>
+</html>
