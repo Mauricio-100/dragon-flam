@@ -1,376 +1,283 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dragon Platform</title>
-
-    <!-- Intégration de React et ReactDOM via CDN -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <!-- Intégration de Babel pour transpiler le JSX directement dans le navigateur -->
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    
-    <!-- DÉBUT DU CSS - Nouveau Design "Cyber Dragon" -->
+    <title>Dragon 🐉 - Registre de Paquets</title>
+    <!-- 1. CDN de Pico.css pour un style simple et propre -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <!-- 2. CDN de Vue.js pour la réactivité -->
+    <script src="https://unpkg.com/vue@3"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap');
-        :root {
-            --primary-color: #00ff9d;
-            --secondary-color: #9c27b0;
-            --background-color: #0d1117;
-            --surface-color: #161b22;
-            --text-color: #c9d1d9;
-            --text-secondary: #8b949e;
-            --border-color: #30363d;
-            --error-color: #f85149;
-        }
-        * { box-sizing: border-box; }
-        body { font-family: 'Roboto Mono', monospace; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        #root { width: 100%; max-width: 900px; }
-        header { text-align: center; margin-bottom: 20px; }
-        header h1 { color: var(--primary-color); font-size: 2.8rem; text-shadow: 0 0 15px rgba(0, 255, 157, 0.5); }
-        nav { display: flex; gap: 15px; justify-content: center; margin-top: 10px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
-        nav a, nav button { background: none; border: 1px solid transparent; color: var(--text-secondary); cursor: pointer; font-size: 1rem; font-family: inherit; padding: 8px 15px; border-radius: 6px; transition: all 0.2s ease-in-out; }
-        nav a.active, nav button.active { color: var(--primary-color); border-color: var(--primary-color); }
-        nav a:hover, nav button:hover { color: #fff; background-color: rgba(0, 255, 157, 0.1); }
-        .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background-color: var(--surface-color); padding: 30px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 20px; }
-        h2, h3 { text-align: center; margin-top: 0; margin-bottom: 25px; color: var(--primary-color); }
-        label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem; }
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background-color: var(--background-color); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); font-family: inherit; }
-        textarea { resize: vertical; min-height: 140px; }
-        button { width: 100%; padding: 12px; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); border: none; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0, 255, 157, 0.2); }
-        button:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
-        a { color: var(--primary-color); text-decoration: none; }
-        .key-display-container { display: flex; gap: 10px; margin: 10px 0; }
-        .key-display-container input { flex-grow: 1; margin-bottom: 0; }
-        .key-display-container button { width: auto; padding: 0 15px; }
-        .error { background-color: var(--error-color); color: white; padding: 15px; border-radius: 6px; text-align: center; margin-top: 20px; display: none; }
-        .package { border-left: 3px solid var(--secondary-color); padding: 15px; margin-bottom: 15px; background-color: rgba(156, 39, 176, 0.05); }
-        #ai-response { background-color: #010409; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; min-height: 100px; white-space: pre-wrap; word-wrap: break-word; }
+        :root { --pico-font-size: 100%; }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .error { color: var(--pico-color-red-400); }
+        .api-key { background-color: var(--pico-card-background-color); padding: 1rem; border-radius: var(--pico-border-radius); word-break: break-all; margin-top: 1rem; }
     </style>
-    <!-- FIN DU CSS -->
 </head>
 <body>
 
-    <div id="root"></div>
+    <div id="app" class="container">
+        
+        <!-- ==================== Barre de Navigation ==================== -->
+        <nav>
+            <ul><li><strong>Dragon 🐉 Registry</strong></li></ul>
+            <ul>
+                <li><a href="#" @click.prevent="changeView('explore')">Explorer</a></li>
+                <li v-if="!isLoggedIn"><a href="#" role="button" class="contrast" @click.prevent="changeView('login')">Connexion</a></li>
+                <li v-if="!isLoggedIn"><a href="#" role="button" @click.prevent="changeView('register')">S'inscrire</a></li>
+                <li v-if="isLoggedIn"><a href="#" @click.prevent="changeView('profile')">Mon Profil</a></li>
+                <li v-if="isLoggedIn"><a href="#" @click.prevent="logout">Déconnexion</a></li>
+            </ul>
+        </nav>
 
-    <!-- DÉBUT DU JAVASCRIPT AVEC REACT (JSX) -->
-    <!-- Le 'type="text/babel"' est crucial pour que Babel puisse transpiler le code -->
-    <script type="text/babel">
+        <main>
+            <!-- ==================== Vue d'Exploration et Recherche ==================== -->
+            <section v-if="currentView === 'explore'">
+                <h1>Explorer les paquets</h1>
+                <input type="search" v-model="searchTerm" @input="searchPackages" placeholder="Rechercher un paquet...">
+                <p v-if="isLoading">Chargement des paquets...</p>
+                <div v-if="!isLoading && packages.length === 0">Aucun paquet trouvé.</div>
+                <div class="grid">
+                    <article v-for="pkg in packages" :key="pkg.package_name + pkg.version">
+                        <header>
+                            <strong>{{ pkg.package_name }}</strong> @ <small>{{ pkg.version }}</small>
+                        </header>
+                        <p>{{ pkg.description }}</p>
+                        <footer><small>Par : <em>{{ pkg.author }}</em></small></footer>
+                    </article>
+                </div>
+            </section>
 
-        const { useState, useEffect } = React;
+            <!-- ==================== Vue de Connexion ==================== -->
+            <section v-if="currentView === 'login'">
+                <article class="grid">
+                    <div>
+                        <hgroup>
+                            <h1>Connexion</h1>
+                            <h2>Accédez à votre compte Dragon.</h2>
+                        </hgroup>
+                        <form @submit.prevent="login">
+                            <input type="email" v-model="loginForm.email" placeholder="Email" required>
+                            <input type="password" v-model="loginForm.password" placeholder="Mot de passe" required>
+                            <button type="submit" :aria-busy="isLoading">Se connecter</button>
+                            <p v-if="error" class="error">{{ error }}</p>
+                        </form>
+                    </div>
+                    <div></div>
+                </article>
+            </section>
 
-        function App() {
-            // ================== ÉTAT DE L'APPLICATION ==================
-            const [page, setPage] = useState('auth'); // auth, dashboard, explore, chat
-            const [token, setToken] = useState(localStorage.getItem('jwtToken'));
-            const [error, setError] = useState('');
-            const [apiKey, setApiKey] = useState('Générez une clé pour commencer...');
-            const [myPackages, setMyPackages] = useState([]);
-            const [explorePackages, setExplorePackages] = useState([]);
-            const [filteredPackages, setFilteredPackages] = useState([]);
-            const [aiResponse, setAiResponse] = useState('');
-            const [isLoading, setIsLoading] = useState(false);
-            
-            const API_BASE_URL = "https://sarver-fullstack-4.onrender.com";
+            <!-- ==================== Vue d'Inscription ==================== -->
+            <section v-if="currentView === 'register'">
+                <article class="grid">
+                    <div>
+                        <hgroup>
+                            <h1>Inscription</h1>
+                            <h2>Créez un nouveau compte Dragon.</h2>
+                        </hgroup>
+                        <form @submit.prevent="register">
+                            <input type="text" v-model="registerForm.username" placeholder="Nom d'utilisateur" required>
+                            <input type="email" v-model="registerForm.email" placeholder="Email" required>
+                            <input type="password" v-model="registerForm.password" placeholder="Mot de passe" required>
+                            <button type="submit" :aria-busy="isLoading">S'inscrire</button>
+                            <p v-if="error" class="error">{{ error }}</p>
+                            <p v-if="successMessage">{{ successMessage }}</p>
+                        </form>
+                    </div>
+                    <div></div>
+                </article>
+            </section>
 
-            // Effet pour vérifier si l'utilisateur est connecté au chargement
-            useEffect(() => {
-                if (token) {
-                    setPage('dashboard');
-                } else {
-                    setPage('auth');
+            <!-- ==================== Vue du Profil Utilisateur ==================== -->
+            <section v-if="currentView === 'profile'">
+                <h1>Mon Profil</h1>
+                <h3>Mes paquets publiés</h3>
+                <p v-if="isLoading">Chargement de vos paquets...</p>
+                <div v-if="!isLoading && userPackages.length === 0">Vous n'avez publié aucun paquet.</div>
+                <ul>
+                    <li v-for="pkg in userPackages">{{ pkg.package_name }} @ {{ pkg.version }}</li>
+                </ul>
+
+                <hr>
+
+                <h3>Votre Clé API</h3>
+                <p>Utilisez cette clé pour publier des paquets depuis votre CLI.</p>
+                <button @click="generateApiKey" :aria-busy="isLoading">Générer une nouvelle clé API</button>
+                <div v-if="apiKey" class="api-key">
+                    <code>{{ apiKey }}</code>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 3. Le code de l'application Vue.js -->
+    <script>
+        const API_URL = "https://sarver-fullstack-4.onrender.com";
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    // État global
+                    currentView: 'explore',
+                    isLoading: false,
+                    error: null,
+                    successMessage: null,
+                    
+                    // Données d'exploration
+                    packages: [],
+                    searchTerm: '',
+
+                    // Données d'authentification
+                    isLoggedIn: false,
+                    token: null,
+                    loginForm: { email: '', password: '' },
+                    registerForm: { username: '', email: '', password: '' },
+
+                    // Données utilisateur
+                    userPackages: [],
+                    apiKey: null,
                 }
-            }, [token]);
-            
-            // Effet pour charger les données des pages quand on y navigue
-            useEffect(() => {
-                if (page === 'dashboard') {
-                    loadDashboardData();
-                } else if (page === 'explore') {
-                    loadExploreData();
-                }
-            }, [page]);
+            },
+            methods: {
+                // --- Navigation ---
+                changeView(view) {
+                    this.currentView = view;
+                    this.error = null; // Réinitialiser les erreurs en changeant de vue
+                    this.successMessage = null;
+                },
 
-            // ================== FONCTIONS API ==================
-            async function apiCall(endpoint, method = 'GET', body = null) {
-                const sessionToken = localStorage.getItem('jwtToken');
-                const headers = { 'Content-Type': 'application/json' };
-                if (sessionToken) {
-                    headers['Authorization'] = `Bearer ${sessionToken}`;
-                }
+                // --- Logique des Paquets ---
+                async fetchExplorePackages() {
+                    this.isLoading = true;
+                    try {
+                        const response = await fetch(`${API_URL}/packages/explore`);
+                        this.packages = await response.json();
+                    } catch (e) {
+                        this.error = "Impossible de charger les paquets.";
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                async searchPackages() {
+                    if (this.searchTerm.trim() === '') {
+                        this.fetchExplorePackages();
+                        return;
+                    }
+                    this.isLoading = true;
+                    try {
+                        const response = await fetch(`${API_URL}/packages/search?q=${this.searchTerm}`);
+                        this.packages = await response.json();
+                    } catch (e) {
+                        this.error = "La recherche a échoué.";
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
 
-                try {
-                    const response = await fetch(`${API_BASE_URL}${endpoint}`, { method, headers, body: body ? JSON.stringify(body) : null });
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.error || 'Une erreur est survenue');
-                    return data;
-                } catch (err) {
-                    setError(err.message);
-                    throw err; // Propage l'erreur pour la gérer localement
+                // --- Logique d'Authentification ---
+                async register() {
+                    this.isLoading = true;
+                    this.error = null;
+                    this.successMessage = null;
+                    try {
+                        const response = await fetch(`${API_URL}/auth/register`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.registerForm)
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.error);
+                        
+                        this.successMessage = "Inscription réussie ! Vous pouvez maintenant vous connecter.";
+                        this.registerForm = { username: '', email: '', password: '' }; // Vider le formulaire
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                async login() {
+                    this.isLoading = true;
+                    this.error = null;
+                    try {
+                        const response = await fetch(`${API_URL}/auth/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.loginForm)
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.error || "Email ou mot de passe invalide.");
+
+                        this.token = data.token;
+                        this.isLoggedIn = true;
+                        localStorage.setItem('dragon_token', this.token); // Sauvegarder le token
+                        this.changeView('profile');
+                        this.fetchUserPackages(); // Charger les données du profil
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                logout() {
+                    this.token = null;
+                    this.isLoggedIn = false;
+                    localStorage.removeItem('dragon_token');
+                    this.changeView('explore');
+                },
+
+                // --- Logique du Profil ---
+                async fetchUserPackages() {
+                    if (!this.token) return;
+                    this.isLoading = true;
+                    try {
+                        const response = await fetch(`${API_URL}/user/packages`, {
+                            headers: { 'Authorization': `Bearer ${this.token}` }
+                        });
+                        this.userPackages = await response.json();
+                    } catch (e) {
+                        this.error = "Impossible de charger vos paquets.";
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                async generateApiKey() {
+                    if (!this.token) return;
+                    this.isLoading = true;
+                    try {
+                        const response = await fetch(`${API_URL}/user/api-token`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${this.token}` }
+                        });
+                        const data = await response.json();
+                        this.apiKey = data.api_token;
+                    } catch (e) {
+                        this.error = "Impossible de générer la clé API.";
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            },
+            // --- Exécuté au chargement initial de la page ---
+            mounted() {
+                this.fetchExplorePackages();
+
+                // Vérifier si un token existe déjà pour connecter l'utilisateur automatiquement
+                const savedToken = localStorage.getItem('dragon_token');
+                if (savedToken) {
+                    this.token = savedToken;
+                    this.isLoggedIn = true;
+                    // On peut aussi aller directement au profil si on le souhaite
+                    // this.changeView('profile');
+                    // this.fetchUserPackages();
                 }
             }
+        });
 
-            // ================== GESTIONNAIRES D'ÉVÉNEMENTS ==================
-            const handleRegister = async (username, email, password) => {
-                try {
-                    await apiCall('/auth/register', 'POST', { username, email, password });
-                    alert('Inscription réussie ! Veuillez vous connecter.');
-                    return true;
-                } catch (err) { return false; }
-            };
-
-            const handleLogin = async (email, password) => {
-                try {
-                    const data = await apiCall('/auth/login', 'POST', { email, password });
-                    localStorage.setItem('jwtToken', data.token);
-                    setToken(data.token);
-                    setError('');
-                } catch (err) { /* L'erreur est déjà gérée par apiCall */ }
-            };
-            
-            const handleLogout = () => {
-                localStorage.removeItem('jwtToken');
-                setToken(null);
-            };
-
-            const handleGenerateKey = async () => {
-                try {
-                    const data = await apiCall('/user/api-token', 'POST');
-                    setApiKey(data.api_token);
-                } catch (err) { /* géré */ }
-            };
-            
-            const handleChatSubmit = async (prompt) => {
-                if (!apiKey || apiKey === 'Générez une clé pour commencer...') {
-                    setError("Veuillez d'abord générer une clé API dans votre tableau de bord.");
-                    return;
-                }
-                setIsLoading(true);
-                setAiResponse("Le dragon réfléchit...");
-                
-                // On utilise la clé API (sk-...) pour cette route, pas le token de session
-                try {
-                    const response = await fetch(`${API_BASE_URL}/chat-direct`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${apiKey}`
-                        },
-                        body: JSON.stringify({ message: prompt })
-                    });
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.error);
-                    setAiResponse(data.reply);
-                } catch (err) {
-                    setError(err.message);
-                    setAiResponse('');
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-            
-            const loadDashboardData = async () => {
-                try {
-                    const packages = await apiCall('/user/packages');
-                    setMyPackages(packages);
-                } catch(err) { /* géré */ }
-            };
-            
-            const loadExploreData = async () => {
-                try {
-                    const packages = await apiCall('/packages/explore');
-                    setExplorePackages(packages);
-                    setFilteredPackages(packages);
-                } catch(err) { /* géré */ }
-            };
-            
-            const handleSearch = (query) => {
-                const q = query.toLowerCase();
-                const filtered = explorePackages.filter(p => 
-                    p.package_name.toLowerCase().includes(q) ||
-                    p.author.toLowerCase().includes(q) ||
-                    p.description.toLowerCase().includes(q)
-                );
-                setFilteredPackages(filtered);
-            };
-
-            // ================== RENDU DES COMPOSANTS ==================
-            return (
-                <div>
-                    <Header />
-                    {token && <Nav currentPage={page} setPage={setPage} onLogout={handleLogout} />}
-                    <main>
-                        {error && <div className="error">{error}</div>}
-                        {page === 'auth' && <AuthPage onLogin={handleLogin} onRegister={handleRegister} />}
-                        {page === 'dashboard' && <DashboardPage apiKey={apiKey} onGenerateKey={handleGenerateKey} myPackages={myPackages} />}
-                        {page === 'explore' && <ExplorePage packages={filteredPackages} onSearch={handleSearch} />}
-                        {page === 'chat' && <ChatPage onSubmit={handleChatSubmit} response={aiResponse} isLoading={isLoading} />}
-                    </main>
-                </div>
-            );
-        }
-
-        // --- COMPOSANTS DE L'INTERFACE ---
-
-        function Header() {
-            return <header><h1>🐉 Dragon Platform</h1></header>;
-        }
-        
-        function Nav({ currentPage, setPage, onLogout }) {
-            return (
-                <nav>
-                    <a href="#" className={currentPage === 'dashboard' ? 'active' : ''} onClick={() => setPage('dashboard')}>Tableau de Bord</a>
-                    <a href="#" className={currentPage === 'explore' ? 'active' : ''} onClick={() => setPage('explore')}>Explorer</a>
-                    <a href="#" className={currentPage === 'chat' ? 'active' : ''} onClick={() => setPage('chat')}>Playground IA</a>
-                    <button onClick={onLogout}>Déconnexion</button>
-                </nav>
-            );
-        }
-
-        function AuthPage({ onLogin, onRegister }) {
-            const [isLogin, setIsLogin] = useState(true);
-            
-            const handleLoginSubmit = (e) => {
-                e.preventDefault();
-                onLogin(e.target.email.value, e.target.password.value);
-            };
-            
-            const handleRegisterSubmit = async (e) => {
-                e.preventDefault();
-                const success = await onRegister(e.target.username.value, e.target.email.value, e.target.password.value);
-                if (success) {
-                    setIsLogin(true); // Redirige vers le login après une inscription réussie
-                }
-            };
-            
-            return (
-                <div className="page active">
-                    {isLogin ? (
-                        <div className="form-container">
-                            <h2>Connexion</h2>
-                            <form onSubmit={handleLoginSubmit}>
-                                <label htmlFor="login-email">Email</label>
-                                <input id="login-email" type="email" name="email" required />
-                                <label htmlFor="login-password">Mot de passe</label>
-                                <input id="login-password" type="password" name="password" required />
-                                <button type="submit">Se connecter</button>
-                            </form>
-                            <p>Pas de compte ? <a href="#" onClick={() => setIsLogin(false)}>Inscrivez-vous</a></p>
-                        </div>
-                    ) : (
-                        <div className="form-container">
-                            <h2>Inscription</h2>
-                            <form onSubmit={handleRegisterSubmit}>
-                                <label htmlFor="reg-username">Nom d'utilisateur</label>
-                                <input id="reg-username" type="text" name="username" required />
-                                <label htmlFor="reg-email">Email</label>
-                                <input id="reg-email" type="email" name="email" required />
-                                <label htmlFor="reg-password">Mot de passe</label>
-                                <input id="reg-password" type="password" name="password" required />
-                                <button type="submit">Créer mon compte</button>
-                            </form>
-                            <p>Déjà un compte ? <a href="#" onClick={() => setIsLogin(true)}>Connectez-vous</a></p>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        function DashboardPage({ apiKey, onGenerateKey, myPackages }) {
-            const API_BASE_URL = "https://sarver-fullstack-4.onrender.com";
-            
-            const copyToClipboard = (text, type) => {
-                if (text && text !== 'Générez une clé pour commencer...') {
-                    navigator.clipboard.writeText(text).then(() => alert(`${type} copié !`));
-                }
-            };
-
-            return (
-                <div className="page active">
-                    <div className="card">
-                        <h3>Vos Informations de Connexion CLI</h3>
-                        <p>Copiez ces informations dans votre fichier <code>~/.env</code> pour configurer Dragon CLI.</p>
-                        <label>URL du Serveur</label>
-                        <div className="key-display-container">
-                            <input type="text" readOnly value={`${API_BASE_URL}/chat-direct`} />
-                            <button onClick={() => copyToClipboard(`${API_BASE_URL}/chat-direct`, 'URL')}>Copier</button>
-                        </div>
-                        <label>Clé API (Bearer Token)</label>
-                        <div className="key-display-container">
-                            <input type="text" readOnly value={apiKey} />
-                            <button onClick={() => copyToClipboard(apiKey, 'Clé API')}>Copier</button>
-                        </div>
-                        <button onClick={onGenerateKey}>Générer / Régénérer ma clé</button>
-                    </div>
-                    <div className="card">
-                        <h3>Mes Dracopacks Publiés</h3>
-                        <div>
-                            {myPackages.length > 0 ? myPackages.map(p => 
-                                <div className="package" key={p.package_name}>
-                                    <h3>{p.package_name} <small>v{p.version}</small></h3>
-                                    <p>{p.description}</p>
-                                </div>
-                            ) : <p>Vous n'avez encore publié aucun paquet.</p>}
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-        
-        function ExplorePage({ packages, onSearch }) {
-            return (
-                <div className="page active">
-                    <div className="card">
-                        <input type="text" onChange={(e) => onSearch(e.target.value)} placeholder="Rechercher un paquet par nom, auteur ou description..." />
-                        <div style={{marginTop: '20px'}}>
-                            {packages.map(p => 
-                                <div className="package" key={`${p.author}-${p.package_name}`}>
-                                    <h3>{p.package_name} <small>v{p.version}</small></h3>
-                                    <p>{p.description}</p>
-                                    <small>par {p.author}</small>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-        
-        function ChatPage({ onSubmit, response, isLoading }) {
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                onSubmit(e.target.prompt.value);
-            };
-
-            return (
-                <div className="page active">
-                    <div className="card">
-                        <h2>Playground IA</h2>
-                        <p>Discutez directement avec le cerveau du Dragon. Assurez-vous d'avoir généré une clé API dans votre tableau de bord.</p>
-                        <form onSubmit={handleSubmit}>
-                            <label htmlFor="chat-prompt">Votre instruction</label>
-                            <textarea id="chat-prompt" name="prompt" required></textarea>
-                            <button type="submit" disabled={isLoading}>{isLoading ? 'Réflexion en cours...' : 'Envoyer au Dragon'}</button>
-                        </form>
-                        <div style={{marginTop: '20px'}}>
-                            <label>Réponse de l'IA</label>
-                            <pre id="ai-response">{response}</pre>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // --- POINT D'ENTRÉE DE L'APPLICATION REACT ---
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-
+        app.mount('#app');
     </script>
-    <!-- FIN DU JAVASCRIPT -->
+
 </body>
 </html>
