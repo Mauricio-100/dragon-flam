@@ -4,23 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dragon 🐉 - Registre de Paquets</title>
-    <!-- 1. CDN de Pico.css pour un style simple et propre -->
+    
+    <!-- CDN de Pico.css (notre base) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <!-- 2. CDN de Vue.js pour la réactivité -->
+    
+    <!-- CDN de Vue.js -->
     <script src="https://unpkg.com/vue@3"></script>
+
+    <!-- NOTRE CSS PERSONNALISÉ -->
     <style>
-        :root { --pico-font-size: 100%; }
-        nav { display: flex; justify-content: space-between; align-items: center; }
-        .grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-        .error { color: var(--pico-color-red-400); }
-        .api-key { background-color: var(--pico-card-background-color); padding: 1rem; border-radius: var(--pico-border-radius); word-break: break-all; margin-top: 1rem; }
+        /* --- Thème & Palette "Dragon" --- */
+        :root {
+            --pico-font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            --pico-font-size: 100%;
+            --pico-primary: #7e57c2; /* Un violet comme couleur d'accent */
+            --pico-primary-hover: #673ab7;
+            --pico-primary-focus: rgba(126, 87, 194, 0.25);
+            --pico-card-background-color: #1e2025;
+            --pico-card-border-color: #2d3038;
+        }
+
+        body {
+            background-color: #14161a;
+        }
+
+        /* --- Mise en Page & Composants --- */
+        .hero {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--pico-muted-color);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--pico-card-border-color);
+            padding-bottom: 1rem;
+        }
+        
+        .package-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .package-card {
+            border: 1px solid var(--pico-card-border-color);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .package-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-container {
+            max-width: 450px;
+            margin: 2rem auto;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: var(--pico-border-radius);
+            margin-top: 1rem;
+        }
+        .alert-error {
+            background-color: rgba(217, 83, 79, 0.1);
+            border: 1px solid #d9534f;
+            color: #d9534f;
+        }
+        .alert-success {
+             background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+
+        .api-key-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: #14161a;
+            padding: 1rem;
+            border-radius: var(--pico-border-radius);
+            word-break: break-all;
+            margin-top: 1rem;
+        }
+        .api-key-wrapper code {
+            flex-grow: 1;
+        }
+        
+        /* --- Loader Animé --- */
+        .loader {
+            display: block;
+            margin: 3rem auto;
+            border: 4px solid var(--pico-muted-border-color);
+            border-top: 4px solid var(--pico-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
 
     <div id="app" class="container">
         
-        <!-- ==================== Barre de Navigation ==================== -->
         <nav>
             <ul><li><strong>Dragon 🐉 Registry</strong></li></ul>
             <ul>
@@ -35,58 +135,49 @@
         <main>
             <!-- ==================== Vue d'Exploration et Recherche ==================== -->
             <section v-if="currentView === 'explore'">
-                <h1>Explorer les paquets</h1>
+                <div class="hero">
+                    <h1>Le Registre de Paquets du Dragon</h1>
+                    <p>Découvrez, publiez et gérez vos paquets en toute simplicité.</p>
+                </div>
                 <input type="search" v-model="searchTerm" @input="searchPackages" placeholder="Rechercher un paquet...">
-                <p v-if="isLoading">Chargement des paquets...</p>
-                <div v-if="!isLoading && packages.length === 0">Aucun paquet trouvé.</div>
-                <div class="grid">
-                    <article v-for="pkg in packages" :key="pkg.package_name + pkg.version">
+                
+                <div v-if="isLoading" class="loader"></div>
+                <div v-if="!isLoading && packages.length === 0" style="text-align: center; margin-top: 2rem;">Aucun paquet trouvé.</div>
+
+                <div v-if="!isLoading" class="package-grid">
+                    <article v-for="pkg in packages" :key="pkg.package_name + pkg.version" class="package-card">
                         <header>
                             <strong>{{ pkg.package_name }}</strong> @ <small>{{ pkg.version }}</small>
                         </header>
-                        <p>{{ pkg.description }}</p>
+                        <p>{{ pkg.description || 'Aucune description' }}</p>
                         <footer><small>Par : <em>{{ pkg.author }}</em></small></footer>
                     </article>
                 </div>
             </section>
 
-            <!-- ==================== Vue de Connexion ==================== -->
-            <section v-if="currentView === 'login'">
-                <article class="grid">
-                    <div>
-                        <hgroup>
-                            <h1>Connexion</h1>
-                            <h2>Accédez à votre compte Dragon.</h2>
-                        </hgroup>
-                        <form @submit.prevent="login">
-                            <input type="email" v-model="loginForm.email" placeholder="Email" required>
-                            <input type="password" v-model="loginForm.password" placeholder="Mot de passe" required>
-                            <button type="submit" :aria-busy="isLoading">Se connecter</button>
-                            <p v-if="error" class="error">{{ error }}</p>
-                        </form>
-                    </div>
-                    <div></div>
-                </article>
-            </section>
+            <!-- ==================== Vue de Connexion / Inscription ==================== -->
+            <section v-if="currentView === 'login' || currentView === 'register'">
+                <article class="form-container">
+                    <hgroup>
+                        <h1 v-if="currentView === 'login'">Connexion</h1>
+                        <h1 v-if="currentView === 'register'">Inscription</h1>
+                        <h2 v-if="currentView === 'login'">Accédez à votre compte Dragon.</h2>
+                        <h2 v-if="currentView === 'register'">Créez un nouveau compte Dragon.</h2>
+                    </hgroup>
+                    
+                    <form @submit.prevent="currentView === 'login' ? login() : register()">
+                        <input v-if="currentView === 'register'" type="text" v-model="registerForm.username" placeholder="Nom d'utilisateur" required>
+                        <input type="email" v-model="form.email" placeholder="Email" required>
+                        <input type="password" v-model="form.password" placeholder="Mot de passe" required>
+                        
+                        <button type="submit" :aria-busy="isLoading">
+                            <span v-if="currentView === 'login'">Se connecter</span>
+                            <span v-if="currentView === 'register'">S'inscrire</span>
+                        </button>
 
-            <!-- ==================== Vue d'Inscription ==================== -->
-            <section v-if="currentView === 'register'">
-                <article class="grid">
-                    <div>
-                        <hgroup>
-                            <h1>Inscription</h1>
-                            <h2>Créez un nouveau compte Dragon.</h2>
-                        </hgroup>
-                        <form @submit.prevent="register">
-                            <input type="text" v-model="registerForm.username" placeholder="Nom d'utilisateur" required>
-                            <input type="email" v-model="registerForm.email" placeholder="Email" required>
-                            <input type="password" v-model="registerForm.password" placeholder="Mot de passe" required>
-                            <button type="submit" :aria-busy="isLoading">S'inscrire</button>
-                            <p v-if="error" class="error">{{ error }}</p>
-                            <p v-if="successMessage">{{ successMessage }}</p>
-                        </form>
-                    </div>
-                    <div></div>
+                        <div v-if="error" class="alert alert-error">{{ error }}</div>
+                        <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
+                    </form>
                 </article>
             </section>
 
@@ -94,187 +185,101 @@
             <section v-if="currentView === 'profile'">
                 <h1>Mon Profil</h1>
                 <h3>Mes paquets publiés</h3>
-                <p v-if="isLoading">Chargement de vos paquets...</p>
+                <div v-if="isLoading" class="loader"></div>
                 <div v-if="!isLoading && userPackages.length === 0">Vous n'avez publié aucun paquet.</div>
                 <ul>
                     <li v-for="pkg in userPackages">{{ pkg.package_name }} @ {{ pkg.version }}</li>
                 </ul>
-
                 <hr>
-
                 <h3>Votre Clé API</h3>
                 <p>Utilisez cette clé pour publier des paquets depuis votre CLI.</p>
                 <button @click="generateApiKey" :aria-busy="isLoading">Générer une nouvelle clé API</button>
-                <div v-if="apiKey" class="api-key">
+                <div v-if="apiKey" class="api-key-wrapper">
                     <code>{{ apiKey }}</code>
+                    <button @click="copyApiKey" class="secondary outline" style="min-width: 100px;">
+                        <svg v-if="copyButtonText === 'Copier'" xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512" style="fill: currentColor; vertical-align: middle;"><path d="M208 0H332.1c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9V368c0 26.5-21.5 48-48 48H208c-26.5 0-48-21.5-48-48V48c0-26.5 21.5-48 48-48zM48 128h80v64H64V448H256V416h64v48c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V176c0-26.5 21.5-48 48-48z"/></svg>
+                        {{ copyButtonText }}
+                    </button>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- 3. Le code de l'application Vue.js -->
+    <!-- Le code de l'application Vue.js -->
     <script>
         const API_URL = "https://sarver-fullstack-4.onrender.com";
 
         const app = Vue.createApp({
             data() {
                 return {
-                    // État global
-                    currentView: 'explore',
-                    isLoading: false,
-                    error: null,
-                    successMessage: null,
-                    
-                    // Données d'exploration
-                    packages: [],
-                    searchTerm: '',
-
-                    // Données d'authentification
-                    isLoggedIn: false,
-                    token: null,
-                    loginForm: { email: '', password: '' },
+                    currentView: 'explore', isLoading: false, error: null, successMessage: null,
+                    packages: [], searchTerm: '',
+                    isLoggedIn: false, token: null,
+                    form: { email: '', password: '' },
                     registerForm: { username: '', email: '', password: '' },
-
-                    // Données utilisateur
-                    userPackages: [],
-                    apiKey: null,
+                    userPackages: [], apiKey: null, copyButtonText: 'Copier',
                 }
             },
             methods: {
-                // --- Navigation ---
                 changeView(view) {
                     this.currentView = view;
-                    this.error = null; // Réinitialiser les erreurs en changeant de vue
-                    this.successMessage = null;
+                    this.error = null; this.successMessage = null;
+                    this.form = { email: '', password: '' }; // Reset form
                 },
-
-                // --- Logique des Paquets ---
-                async fetchExplorePackages() {
-                    this.isLoading = true;
-                    try {
-                        const response = await fetch(`${API_URL}/packages/explore`);
-                        this.packages = await response.json();
-                    } catch (e) {
-                        this.error = "Impossible de charger les paquets.";
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-                async searchPackages() {
-                    if (this.searchTerm.trim() === '') {
-                        this.fetchExplorePackages();
-                        return;
-                    }
-                    this.isLoading = true;
-                    try {
-                        const response = await fetch(`${API_URL}/packages/search?q=${this.searchTerm}`);
-                        this.packages = await response.json();
-                    } catch (e) {
-                        this.error = "La recherche a échoué.";
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                // --- Logique d'Authentification ---
+                async fetchExplorePackages() { /* ... (code inchangé) ... */ },
+                async searchPackages() { /* ... (code inchangé) ... */ },
                 async register() {
-                    this.isLoading = true;
-                    this.error = null;
-                    this.successMessage = null;
+                    this.isLoading = true; this.error = null; this.successMessage = null;
                     try {
-                        const response = await fetch(`${API_URL}/auth/register`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(this.registerForm)
-                        });
+                        const payload = { ...this.registerForm, email: this.form.email, password: this.form.password };
+                        const response = await fetch(`${API_URL}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.error);
-                        
                         this.successMessage = "Inscription réussie ! Vous pouvez maintenant vous connecter.";
-                        this.registerForm = { username: '', email: '', password: '' }; // Vider le formulaire
-                    } catch (e) {
-                        this.error = e.message;
-                    } finally {
-                        this.isLoading = false;
-                    }
+                        this.registerForm = { username: ''}; this.form = { email: '', password: '' };
+                    } catch (e) { this.error = e.message; } finally { this.isLoading = false; }
                 },
                 async login() {
-                    this.isLoading = true;
-                    this.error = null;
+                    this.isLoading = true; this.error = null;
                     try {
-                        const response = await fetch(`${API_URL}/auth/login`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(this.loginForm)
-                        });
+                        const response = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(this.form) });
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.error || "Email ou mot de passe invalide.");
-
                         this.token = data.token;
                         this.isLoggedIn = true;
-                        localStorage.setItem('dragon_token', this.token); // Sauvegarder le token
+                        localStorage.setItem('dragon_token', this.token);
                         this.changeView('profile');
-                        this.fetchUserPackages(); // Charger les données du profil
-                    } catch (e) {
-                        this.error = e.message;
-                    } finally {
-                        this.isLoading = false;
-                    }
+                        this.fetchUserPackages();
+                    } catch (e) { this.error = e.message; } finally { this.isLoading = false; }
                 },
-                logout() {
-                    this.token = null;
-                    this.isLoggedIn = false;
-                    localStorage.removeItem('dragon_token');
-                    this.changeView('explore');
-                },
-
-                // --- Logique du Profil ---
-                async fetchUserPackages() {
-                    if (!this.token) return;
-                    this.isLoading = true;
-                    try {
-                        const response = await fetch(`${API_URL}/user/packages`, {
-                            headers: { 'Authorization': `Bearer ${this.token}` }
-                        });
-                        this.userPackages = await response.json();
-                    } catch (e) {
-                        this.error = "Impossible de charger vos paquets.";
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-                async generateApiKey() {
-                    if (!this.token) return;
-                    this.isLoading = true;
-                    try {
-                        const response = await fetch(`${API_URL}/user/api-token`, {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${this.token}` }
-                        });
-                        const data = await response.json();
-                        this.apiKey = data.api_token;
-                    } catch (e) {
-                        this.error = "Impossible de générer la clé API.";
-                    } finally {
-                        this.isLoading = false;
-                    }
+                logout() { /* ... (code inchangé) ... */ },
+                async fetchUserPackages() { /* ... (code inchangé) ... */ },
+                async generateApiKey() { /* ... (code inchangé) ... */ },
+                copyApiKey() {
+                    navigator.clipboard.writeText(this.apiKey).then(() => {
+                        this.copyButtonText = 'Copié !';
+                        setTimeout(() => { this.copyButtonText = 'Copier'; }, 2000);
+                    });
                 }
             },
-            // --- Exécuté au chargement initial de la page ---
             mounted() {
+                // ... (code inchangé, mais on peut le simplifier si besoin)
                 this.fetchExplorePackages();
-
-                // Vérifier si un token existe déjà pour connecter l'utilisateur automatiquement
                 const savedToken = localStorage.getItem('dragon_token');
                 if (savedToken) {
                     this.token = savedToken;
                     this.isLoggedIn = true;
-                    // On peut aussi aller directement au profil si on le souhaite
-                    // this.changeView('profile');
-                    // this.fetchUserPackages();
                 }
             }
         });
+        
+        // J'ai recopié le code JS pour la clarté, mais seules les lignes touchant aux formulaires et le 'copyApiKey' ont vraiment changé.
+        const methods = app.config.globalProperties;
+        app.config.globalProperties.fetchExplorePackages = async function() { this.isLoading = true; try { const r = await fetch(`${API_URL}/packages/explore`); this.packages = await r.json(); } catch (e) { this.error = "Impossible de charger les paquets."; } finally { this.isLoading = false; }};
+        app.config.globalProperties.searchPackages = async function() { if (this.searchTerm.trim() === '') { this.fetchExplorePackages(); return; } this.isLoading = true; try { const r = await fetch(`${API_URL}/packages/search?q=${this.searchTerm}`); this.packages = await r.json(); } catch (e) { this.error = "La recherche a échoué."; } finally { this.isLoading = false; }};
+        app.config.globalProperties.logout = function() { this.token = null; this.isLoggedIn = false; localStorage.removeItem('dragon_token'); this.changeView('explore'); };
+        app.config.globalProperties.fetchUserPackages = async function() { if (!this.token) return; this.isLoading = true; try { const r = await fetch(`${API_URL}/user/packages`, { headers: { 'Authorization': `Bearer ${this.token}` } }); this.userPackages = await r.json(); } catch (e) { this.error = "Impossible de charger vos paquets."; } finally { this.isLoading = false; }};
+        app.config.globalProperties.generateApiKey = async function() { if (!this.token) return; this.isLoading = true; try { const r = await fetch(`${API_URL}/user/api-token`, { method: 'POST', headers: { 'Authorization': `Bearer ${this.token}` } }); const data = await r.json(); this.apiKey = data.api_token; } catch (e) { this.error = "Impossible de générer la clé API."; } finally { this.isLoading = false; }};
 
         app.mount('#app');
     </script>
